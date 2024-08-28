@@ -8,5 +8,10 @@ ENV R_LIBS_SITE=/opt/r-libs-site
 RUN R --vanilla -e 'options(warn=2); install.packages("pak", repos = "https://stat.ethz.ch/CRAN/")'
 
 RUN R --vanilla -e 'options(warn=2); pak::pkg_install(c("seqinr", "prozor", "logger", "git::https://gitlab.bfabric.org/wolski/prolfquadata.git", "github::fgcz/prolfqua"))'
+COPY ./DESCRIPTION /opt/prolfqua/DESCRIPTION
+RUN R --vanilla -e 'options(warn=2); pak::local_install_deps("/opt/prolfqua")'
 COPY . /opt/prolfqua
 RUN R --vanilla -e 'options(warn=2); pak::pkg_install("/opt/prolfqua")'
+
+ENV PATH="/opt/prolfqua/inst/application/bin:${PATH}"
+ENTRYPOINT ["/bin/bash"]
