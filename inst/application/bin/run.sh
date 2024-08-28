@@ -21,4 +21,8 @@ if [[ $# -eq 0 ]] || [[ $1 == "-h" ]] || [[ $1 == "--help" ]]; then
     exit 1
 fi
 # TODO does this forward return codes?
-docker run --platform linux/amd64 --rm -it --entrypoint bash -v "$(pwd)":/work -w /work $DOCKER_IMAGE "$@"
+# TODO does this need explicit --platform
+docker run  \
+  --user="$(id -u):$(id -g)" \
+  --rm -it --mount type=bind,source="$(pwd)",target=/work \
+  -w /work $DOCKER_IMAGE "$@"
