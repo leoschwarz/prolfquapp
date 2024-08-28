@@ -26,8 +26,15 @@ else
 fi
 DOCKER_IMAGE=docker.io/leoschwarz/prolfquapp:$DOCKER_IMAGE_VERSION
 
+# Use podman if available, fallback to docker.
+if command -v podman >/dev/null 2>&1; then
+  DOCKER="podman"
+else
+  DOCKER="docker"
+fi
+echo "Using $DOCKER to run $DOCKER_IMAGE"
 
-DOCKER="docker"
+
 if ! $DOCKER image inspect "$DOCKER_IMAGE" >/dev/null 2>&1; then
   echo "Image $DOCKER_IMAGE not found locally. Pulling..."
   $DOCKER pull "$DOCKER_IMAGE"
