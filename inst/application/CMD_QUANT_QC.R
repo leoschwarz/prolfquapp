@@ -12,16 +12,18 @@ option_list <- list(
   make_option( c("-i", "--indir"), type = "character", default = ".",
                help = "folder containing fasta file and output of the quantification software.",
                metavar = "string"),
-  make_option( c("-p", "--project"), type = "character", default = "1234",
+  make_option( c("-p", "--project"), type = "character", default = "",
                help = "your project identifier",
                metavar = "string"),
-  make_option( c("-w", "--workunit"), type = "character", default = "4321",
+  make_option( c("-w", "--workunit"), type = "character", default = "",
                help = "workunit identifier",
                metavar = "string"),
   make_option( c("-d", "--dataset"), type = "character", default = "dataset.csv",
                help = "name of annotation",
                metavar = "string"),
-
+  make_option(c("-O", "--order"), type = "character", default = "",
+              help = "order ID",
+              metavar = "character"),
   make_option( c("-o", "--outdir"), type = "character", default = "qc_dir",
                help = "folder to write the results to.",
                metavar = "string"),
@@ -35,6 +37,7 @@ option_list <- list(
 
 parser <- OptionParser(usage = "%prog --indir . ", option_list = option_list)
 arguments <- parse_args(parser, positional_arguments = TRUE)
+
 lobstr::tree(arguments)
 
 opt <- arguments$options
@@ -46,6 +49,12 @@ if (FALSE) {
   opt$indir <- "DIANN_1.9_tsv/"
   opt$dataset <- "dataset.xlsx"
 }
+
+if (FALSE) {
+  opt$indir <- "."
+  opt$dataset <- "dataset.csv"
+}
+
 
 # set library path
 if (!is.null(opt$libPath) && dir.exists(opt$libPath)) {
@@ -60,10 +69,12 @@ logger::log_info("using : ", system.file(package = "prolfquapp"))
 
 GRP2 <- prolfquapp::make_DEA_config_R6(
   PATH = opt$outdir,
-  ORDERID = opt$project,
+  ORDERID = opt$order,
   PROJECTID =  opt$project,
   WORKUNITID = opt$workunit,
-  application = opt$software)
+  application = opt$software,
+  prefix = "QC"
+  )
 
 dir.create(GRP2$path)
 
