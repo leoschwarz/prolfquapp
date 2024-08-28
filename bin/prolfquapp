@@ -46,4 +46,4 @@ fi
 $DOCKER run  \
   --user="$(id -u):$(id -g)" \
   --rm -it --mount type=bind,source="$(pwd)",target=/work \
-  -w /work $DOCKER_IMAGE "$@"
+  -w /work "$DOCKER_IMAGE" "$@"
