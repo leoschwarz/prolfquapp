@@ -8,3 +8,6 @@ inst/doc
 /Meta/
 Dockerfile
 .dockerignore
+.git
+.gitignore
+inst/poster
