@@ -17,9 +17,9 @@ fi
 if [[ $# -eq 0 ]] || [[ $1 == "-h" ]] || [[ $1 == "--help" ]]; then
     echo "Usage: $0 <command> [args]"
     echo "Example commands: "
-    # TODO update these
     echo " $0 prolfqua_yaml.sh"
     echo " $0 prolfqua_dataset.sh"
+    echo " (see README.md for more details)"
     exit 1
 fi
 $DOCKER run  \
