@@ -4,6 +4,8 @@
 # - The current directory will be mounted to /work and set as the current working directory for the command being executed.
 #   TODO about absolute paths...
 
+set -euo pipefail
+
 # Default values for arguments
 IMAGE_VERSION="0.0.1"
 IMAGE_REPO="docker.io/leoschwarz/prolfquapp"
@@ -12,8 +14,8 @@ IMAGE_REPO="docker.io/leoschwarz/prolfquapp"
 usage() {
   echo "Usage: $0 [--image-version VERSION] [--image-repo REPO] [container_args]"
   echo "Options:"
-  echo "  --image-version   Specify the version of the image to use (default: 0.0.1)"
-  echo "  --image-repo      Specify the repository of the image (default: docker.io/leoschwarz/prolfquapp)"
+  echo "  --image-version   Specify the version of the image to use (default: $IMAGE_VERSION)"
+  echo "  --image-repo      Specify the repository of the image (default: $IMAGE_REPO)"
   exit 1
 }
 
