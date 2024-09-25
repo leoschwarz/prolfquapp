@@ -9,8 +9,8 @@ preprocess_DIANN(
   fasta_file,
   annotation,
   q_value = 0.01,
-  pattern_contaminants = "^zz|^CON",
-  pattern_decoys = "REV_"
+  pattern_contaminants = "^zz|^CON|Cont_",
+  pattern_decoys = "^REV_|^rev"
 )
 }
 \value{
@@ -20,13 +20,12 @@ list with lfqdata and protein annotation
 preprocess DIANN ouput, filter by q_value and nr_peptides
 }
 \examples{
-
+\dontrun{
 x <- get_DIANN_files("inst/application/DIANN/2517219/")
 
 annotation <- file.path("inst/application/DIANN/2517219/dataset.csv") |>
  readr::read_csv() |> prolfquapp::read_annotation(QC = TRUE)
  x$fasta
-#debug(preprocess_DIANN)
 xd <- preprocess_DIANN(x$data, x$fasta, annotation)
-
+}
 }

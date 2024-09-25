@@ -323,6 +323,7 @@ read_yaml <- function(ymlfile, application = "FragPipeTMT" ) {
   return(GRP2)
 }
 
+
 #' create GRP2 configuration.
 #' Use this function if there is no Yaml Input.
 #' @param patternDecoys default "^REV_"
@@ -344,7 +345,7 @@ make_DEA_config <- function(
     removeDecoys = FALSE,
     patternDecoys = "^REV_",
     patternContaminants = "^zz",
-    application = "FP_TMT",
+    application = "FragPipeTMT",
     nrPeptides = 2){
   warning("DEPRECATED")
   Normalization <- match.arg(Normalization)
@@ -378,4 +379,3 @@ make_DEA_config <- function(
 
   return(GRP2)
 }
-

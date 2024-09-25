@@ -18,7 +18,7 @@ make_DEA_config(
   removeDecoys = FALSE,
   patternDecoys = "^REV_",
   patternContaminants = "^zz",
-  application = "FP_TMT",
+  application = "FragPipeTMT",
   nrPeptides = 2
 )
 }

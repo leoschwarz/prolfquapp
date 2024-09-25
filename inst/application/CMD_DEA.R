@@ -16,7 +16,7 @@ option_list <- list(
                         help = "yaml configuration file",
                         metavar = "character"),
   optparse::make_option(c("-s", "--software"), type = "character", default = NULL,
-                        help = "possible options: DIANN, FP_TMT, FP_multisite, MAXQUANT, MSSTATS",
+                        help = "possible options: DIANN, FP_TMT, FP_multisite, FP_combined_STY, MAXQUANT, MSSTATS",
                         metavar = "character"),
   optparse::make_option(c("-o", "--outdir"), type = "character", default = NULL,
                         help = "output directory",
@@ -45,38 +45,29 @@ if (FALSE) {
   opt$dataset <- "p35593_uniprot_paired/dataset.xlsx"
   opt$indir <- "o35593_prot_ionquant/"
 }
-
 if (FALSE) {
-  ymlfile <- "p35593_uniprot_paired/MultisiteUniprot.yaml"
-  opt$dataset <- "p35593_uniprot_paired/dataset.xlsx"
-  opt$indir <- "o35593_phos_siteLocFiltered_ionquant/"
+  ymlfile <- "minimalPhosphoAnalysis.yaml"
+  opt$dataset <- "p35540_WU313409_annotationTableXLSX.xlsx"
+  opt$indir <- "Fragpipe_o35920_phospho/"
+  opt$software <- "FP_multisite"
 }
 if (FALSE) {
-  ymlfile <- "xenbaseAnalysis/WholeProtXenbase.yaml"
-  opt$dataset <- "xenbaseAnalysis/dataset.xlsx"
-  opt$indir <- "o35593_prot_ionquant_xenbase/"
-}
-if (FALSE) {
-  ymlfile <- "xenbaseAnalysis/MultisiteXenbase.yaml"
-  opt$dataset <- "xenbaseAnalysis/dataset.xlsx"
-  opt$indir <- "o35593_phos_siteLocFiltered_ionquant_xenbase/"
-}
-
-if (FALSE) {
-  ymlfile <- "config.yaml"
-  opt$dataset <- "dataset_with_contrasts.xlsx"
-  opt$indir <- "DIANN_19_all_18_50_50_MBR_v01//"
-}
-if (FALSE) {
-  ymlfile <- "config.yaml"
-  opt$dataset <- "dataset.csv"
-  opt$software <- "MSSTATS"
-  opt$indir <- "2543975/"
-}
-if (FALSE) {
-  ymlfile <- "config.yaml"
-  opt$dataset <- "dataset.csv"
+  ymlfile <- "minimal.yaml"
   opt$indir <- "."
+  opt$software <- "MSSTATS"
+  opt$dataset <- "dataset.csv"
+}
+if (FALSE) {
+  ymlfile <- "config.yaml"
+  opt$indir <- "."
+  opt$software <- "DIANN"
+  opt$dataset <- "dataset.csv"
+}
+if (FALSE) {
+  ymlfile <- "dea.yaml"
+  opt$indir <- "Input_Dir/"
+  opt$software <- "DIANN"
+  opt$dataset <- "datasetWContrasts.xlsx"
 }
 
 
@@ -87,16 +78,18 @@ logger::log_info("YAML file read: ", ymlfile)
 stopifnot(file.exists(ymlfile))
 
 GRP2 <- prolfquapp::get_config(ymlfile)
+
 res <- prolfquapp::sync_opt_config(opt, GRP2)
 opt <- res$opt
 GRP2 <- res$config
 
+dir.create(opt$outdir)
 appender_combined <- logger::appender_tee(file.path(opt$outdir, "prolfqua.log"))
 logger::log_appender(appender_combined)
 logger::log_info(prolfquapp::capture_output(quote(lobstr::tree(opt))))
 
 logger::log_info("Writing to output directory : ", opt$outdir)
-dir.create(opt$outdir)
+
 
 
 logger::log_info("prolfquapp paramters : ")
@@ -112,72 +105,41 @@ logger::log_info("Factors : ",paste(annotation$atable$factor_keys_depth(), colla
 prolfquapp::copy_DEA_Files()
 logger::log_info("Software: ", opt$software)
 
-if (opt$software == "DIANN") {
-  files <- prolfquapp::get_DIANN_files(opt$indir)
-  logger::log_info("Files data: ", paste(files$data, collapse = "; "))
-  logger::log_info("Files fasta: ", paste0(files$fasta, collapse = "; "))
-  xd <- prolfquapp::preprocess_DIANN(
-    quant_data = files$data,
-    fasta_file = files$fasta,
-    annotation = annotation,
-    q_value = 0.1,
-    pattern_contaminants = GRP2$processing_options$pattern_contaminants,
-    pattern_decoys = GRP2$processing_options$pattern_decoys
-  )
-} else if (opt$software == "FP_TMT") {
-  files <- prolfquapp::get_FP_PSM_files(opt$indir)
-  logger::log_info("Files data: ", paste(files$data, collapse = "; "))
-  logger::log_info("Files fasta: ", paste0(files$fasta, collapse = "; "))
-  xd <- prolfquapp::preprocess_FP_PSM(
-    quant_data = files$data,
-    fasta_file = files$fasta,
-    annotation = annotation,
-    purity_threshold = 0.5,
-    PeptideProphetProb = 0.9,
-    pattern_contaminants = GRP2$processing_options$pattern_contaminants,
-    pattern_decoys = GRP2$processing_options$pattern_decoys
-  )
-} else if (opt$software == "FP_multisite") {
-  files <- prolfquapp::get_FP_multi_site_files(opt$indir)
-  logger::log_info("Files data: ", paste(files$data, collapse = "; "))
-  logger::log_info("Files fasta: ", paste0(files$fasta, collapse = "; "))
-  xd <- prolfquapp::preprocess_FP_multi_site(
-    files$data[1],
-    files$fasta,
+
+result <- tryCatch({
+  # Attempt to run the function
+  procsoft <- preprocess_software(
+    opt$indir,
     annotation,
     pattern_contaminants = GRP2$processing_options$pattern_contaminants,
-    pattern_decoys = GRP2$processing_options$pattern_decoys)
-} else if (opt$software == "FP_combined_STY"){
-
-} else if (opt$software == "MAXQUANT") {
-  files <- prolfquapp::get_MQ_peptide_files(opt$indir)
-  logger::log_info("Files data: ", paste(files$data, collapse = "; "))
-  logger::log_info("Files fasta: ", paste0(files$fasta, collapse = "; "))
-
-  xd <- prolfquapp::preprocess_MQ_peptide(
-    quant_data = files$data,
-    fasta_file = files$fasta,
-    annotation = annotation,
-    pattern_contaminants = GRP2$processing_options$pattern_contaminants,
-    pattern_decoys = GRP2$processing_options$pattern_decoys
+    pattern_decoys = GRP2$processing_options$pattern_decoys,
+    software = opt$software
   )
-} else if (opt$software == "MSSTATS") {
-  files <- prolfquapp::get_MSstats_files(opt$indir)
-  logger::log_info("Files data: ", paste(files$data, collapse = "; "))
-  logger::log_info("Files fasta: ", paste0(files$fasta, collapse = "; "))
-
-  xd <- prolfquapp::preprocess_MSstats(
-    quant_data = files$data,
-    fasta_file = files$fasta,
-    annotation = annotation,
-    pattern_contaminants = GRP2$processing_options$pattern_contaminants,
-    pattern_decoys = GRP2$processing_options$pattern_decoys
+  # Return the result if successful
+  list(value = procsoft, error = NULL, stack_trace = NULL)
+}, error = function(e) {
+  # On error, capture the stack trace as text
+  stack_trace <- capture.output(traceback())
+  # Return the error message and stack trace
+  list(
+    value = NULL,
+    error = conditionMessage(e),
+    stack_trace = paste(stack_trace, collapse = "\n")
   )
+})
+
+if (!is.null(result$error)) {
+  logger::log_error(result$error, "\n")
+  logger::log_error("Stack trace:\n")
+  logger::log_error(result$stack_trace, "\n")
+  stop("error occured")
 } else {
-  logger::log_error("no such software :" , opt$software)
-  stop("no such software.")
+  xd <- result$value$xd
+  files <- result$value$files
 }
 
+
+logger::log_info("Processing done:", opt$software)
 logger::log_info(paste(c("Protein Annotation :\n",capture.output( print(xd$protein_annotation$get_summary()))),collapse = "\n"))
 logger::log_info("AGGREGATING PEPTIDE DATA: {GRP2$processing_options$aggregate}.")
 lfqdata <- prolfquapp::aggregate_data(xd$lfqdata, agg_method = GRP2$processing_options$aggregate)
@@ -186,8 +148,9 @@ logger::log_info("RUN ANALYSIS")
 grp <- prolfquapp::generate_DEA_reports2(lfqdata, GRP2, xd$protein_annotation, annotation$contrasts)
 logger::log_info("Writing results to: " ,  GRP2$get_zipdir())
 
+
 outdir <- prolfquapp::write_DEA_all(
-  grp, boxplot = FALSE, markdown = "_Grp2Analysis_V2.Rmd")
+  grp, name = "", boxplot = FALSE, markdown = "_Grp2Analysis_V2.Rmd")
 
 lfqdataIB <- xd$lfqdata$get_subset(xd$protein_annotation$clean(
   contaminants = GRP2$processing_options$remove_cont,
@@ -196,12 +159,11 @@ lfqdataIB <- xd$lfqdata$get_subset(xd$protein_annotation$clean(
 # do not write when peptide level analysis.
 if (length(xd$protein_annotation$pID) == 1) {
   ibaq <- compute_IBAQ_values(lfqdataIB, xd$protein_annotation)
-  writexl::write_xlsx(ibaq$to_wide()$data, path = file.path(grp$get_result_dir(), "IBAQ.xlsx"))
+  writexl::write_xlsx(ibaq$to_wide()$data, path = file.path(grp$get_result_dir(), paste0("IBAQ_",opt$workunit,".xlsx")))
 }
 
 logger::log_info("Writing summarized experiment.")
 SE <- prolfquapp::make_SummarizedExperiment(grp)
-
 saveRDS(SE, file = file.path( grp$get_result_dir(), "SummarizedExperiment.rds"))
 
 
