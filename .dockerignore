@@ -9,5 +9,6 @@ inst/doc
 Dockerfile
 .dockerignore
 .git
+.github
 .gitignore
 inst/poster
