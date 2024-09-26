@@ -2,7 +2,8 @@
 # This script is used to run a single command in the prolfquapp docker image.
 # - The docker image is pulled if it does not exist locally.
 # - The current directory will be mounted to /work and set as the current working directory for the command being executed.
-#   TODO about absolute paths...
+# Limitations
+# - Currently, specified paths should be relative to the current working directory and not go outside of it.
 
 set -euo pipefail
 
