@@ -2,9 +2,9 @@ ARG R_VERSION=4.4.1
 
 FROM r-base:${R_VERSION} AS base
 RUN apt-get update \
-  && apt-get install -y pandoc \
+  && apt-get install -y pandoc pipx \
   && rm -rf /var/lib/apt/lists/*
-
+RUN pipx install quarto-cli
 
 
 FROM base AS build
