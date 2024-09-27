@@ -4,6 +4,11 @@ on:
   push:
     branches: ['release']
   workflow_dispatch: 
+    inputs:
+      version:
+        description: 'The version of the Docker image'
+        required: true
+        default: '0.0.2'
 
 env:
   REGISTRY: ghcr.io
@@ -31,5 +36,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: leoschwarz/prolfquapp:latest
+          tags: 
+            - leoschwarz/prolfquapp:latest
+            - leoschwarz/prolfquapp:${{ github.event.inputs.version }}
       
